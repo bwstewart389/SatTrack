@@ -176,6 +176,10 @@ require(['../../src/WorldWind',
             wwd.addLayer(groundStationsLayer);
 
 
+
+        //  var follow = false;
+        window.setInterval(function () {
+           
 // Orbit Propagation (MIT License, see https://github.com/shashwatak/satellite-js)
 
         function getPosition(satrec, time) {
@@ -203,26 +207,13 @@ require(['../../src/WorldWind',
             return new WorldWind.Position(latitude, longitude, altitude);
         }
 
-        //  var follow = false;
-        window.setInterval(function () {
-            var position = getPosition(satrec, new Date());
-            currentPosition.latitude = position.latitude;
-            currentPosition.longitude = position.longitude;
-            currentPosition.altitude = position.altitude;
-
-            updateLLA(currentPosition);
-
-            /*   if (follow) {
-             toCurrentPosition();
-             }*/
-
-            wwd.redraw();
-        }, 5000);
+            
 
 
 
         for (var j = 0, len = satellites.length; j < len; j++) {
             var sats = satellites[j];
+            
 
             var tle_line_1 = sats.tle_line_1;
             var tle_line_2 = sats.tle_line_2;
@@ -237,6 +228,7 @@ require(['../../src/WorldWind',
                 var time = new Date(now.getTime() + k * 60000);
 
                 var position = getPosition(satrec, time);
+                
 
                 if (k < 0) {
                     pastOrbit.push(position);
@@ -249,7 +241,10 @@ require(['../../src/WorldWind',
                     pastOrbit.push(position);
                     futureOrbit.push(position);
                 }
+                
             }
+            
+            
 
 // Orbit Path
             var orbitLayer = new WorldWind.RenderableLayer();
@@ -281,12 +276,13 @@ require(['../../src/WorldWind',
             updateLLA(currentPosition);
 
 
+
                 var placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
-                placemarkAttributes.imageSource = "../apps/SatTracker/satellite.png";
+                placemarkAttributes.imageSource = "../apps/SatTracker/dot-red.png";
                 placemarkAttributes.imageScale = 1;
                 placemarkAttributes.imageOffset = new WorldWind.Offset(
-                    WorldWind.OFFSET_FRACTION, 0.3,
-                    WorldWind.OFFSET_FRACTION, 0.0);
+                    WorldWind.OFFSET_FRACTION, 0.5,
+                    WorldWind.OFFSET_FRACTION, 0.5);
                 placemarkAttributes.imageColor = WorldWind.Color.WHITE;
                 placemarkAttributes.labelAttributes.offset = new WorldWind.Offset(
                     WorldWind.OFFSET_FRACTION, 0.5,
@@ -295,7 +291,10 @@ require(['../../src/WorldWind',
 
 
                 var highlightPlacemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
+                 highlightPlacemarkAttributes.imageSource = "../apps/SatTracker/satellite.png";
+                
                 highlightPlacemarkAttributes.imageScale = 1.2;
+            
 
 
             placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
@@ -304,11 +303,28 @@ require(['../../src/WorldWind',
             placemark.highlightAttributes = highlightPlacemarkAttributes;
 
             var satelliteLayer = new WorldWind.RenderableLayer();
-            satelliteLayer.displayName = sats.name;
+            satelliteLayer.displayName = "Satellite";
             satelliteLayer.addRenderable(placemark);
             wwd.addLayer(satelliteLayer);
+            // Draw
+            wwd.redraw();
+            
 
             }
+            
+            
+            /*   if (follow) {
+             toCurrentPosition();
+             }*/
+            var position = getPosition(satrec, new Date());
+            currentPosition.latitude = position.latitude;
+            currentPosition.longitude = position.longitude;
+            currentPosition.altitude = position.altitude;
+            
+
+            updateLLA(currentPosition);
+            wwd.redraw();
+        }, 5000);
 
 // Satellite
         /*   //collada
