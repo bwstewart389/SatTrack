@@ -73,6 +73,11 @@ require(['../../src/WorldWind',
                 name: 'GPS BIIR-7  (PRN 18)',
                 tle_line_1: '1 26690U 01004A   16181.42572449  .00000087  00000-0  00000+0 0  9996',
                 tle_line_2: '2 26690  53.0056 172.5696 0174682 252.7938 339.0017  2.00560349112932'
+            },
+            { 
+                name: 'GORIZONT 5 [-]',
+                tle_line_1: '1 13092U 82020A   16182.10038119 -.00000151  00000-0  00000+0 0  9995',
+                tle_line_2: '2 13092  15.0846 337.9584 0034789 157.1687 196.9353  0.98532866 85721'
             }
     ];
 
@@ -152,7 +157,7 @@ require(['../../src/WorldWind',
             WorldWind.OFFSET_FRACTION, 1.0);
         placemarkAttributes.labelAttributes.color = WorldWind.Color.WHITE;
 
-
+        var groundStationsLayer = new WorldWind.RenderableLayer();
         for (var i = 0, len = groundStations.length; i < len; i++) {
             var groundStation = groundStations[i];
 
@@ -163,14 +168,13 @@ require(['../../src/WorldWind',
             placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
             placemark.label = groundStation.name;
             placemark.attributes = placemarkAttributes;
-
-
-            // Add the path to a layer and the layer to the World Window's layer list.
-            var groundStationsLayer = new WorldWind.RenderableLayer();
-            groundStationsLayer.displayName = "Ground Stations";
             groundStationsLayer.addRenderable(placemark);
-            wwd.addLayer(groundStationsLayer);
         }
+            // Add the path to a layer and the layer to the World Window's layer list.
+            groundStationsLayer.displayName = "Ground Stations";
+
+            wwd.addLayer(groundStationsLayer);
+
 
 // Orbit Propagation (MIT License, see https://github.com/shashwatak/satellite-js)
 
@@ -198,6 +202,24 @@ require(['../../src/WorldWind',
 
             return new WorldWind.Position(latitude, longitude, altitude);
         }
+
+        //  var follow = false;
+        window.setInterval(function () {
+            var position = getPosition(satrec, new Date());
+            currentPosition.latitude = position.latitude;
+            currentPosition.longitude = position.longitude;
+            currentPosition.altitude = position.altitude;
+
+            updateLLA(currentPosition);
+
+            /*   if (follow) {
+             toCurrentPosition();
+             }*/
+
+            wwd.redraw();
+        }, 5000);
+
+
 
         for (var j = 0, len = satellites.length; j < len; j++) {
             var sats = satellites[j];
@@ -230,6 +252,7 @@ require(['../../src/WorldWind',
             }
 
 // Orbit Path
+            var orbitLayer = new WorldWind.RenderableLayer();
             var pathAttributes = new WorldWind.ShapeAttributes(null);
             pathAttributes.outlineColor = WorldWind.Color.RED;
             pathAttributes.interiorColor = new WorldWind.Color(1, 0, 0, 0.5);
@@ -247,15 +270,16 @@ require(['../../src/WorldWind',
             futureOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
             futureOrbitPath.attributes = pathAttributes;
 
-            var orbitLayer = new WorldWind.RenderableLayer();
+
             orbitLayer.displayName = sats.name;
+            wwd.addLayer(orbitLayer);
             orbitLayer.addRenderable(pastOrbitPath);
             orbitLayer.addRenderable(futureOrbitPath);
-            wwd.addLayer(orbitLayer);
 
-        //satellites    
+        //satellites
             var placemark = new WorldWind.Placemark(currentPosition);
             updateLLA(currentPosition);
+
 
                 var placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
                 placemarkAttributes.imageSource = "../apps/SatTracker/satellite.png";
@@ -272,6 +296,7 @@ require(['../../src/WorldWind',
 
                 var highlightPlacemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
                 highlightPlacemarkAttributes.imageScale = 1.2;
+
 
             placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
             placemark.label = sats.name;
@@ -302,14 +327,13 @@ require(['../../src/WorldWind',
          //end collada*/
         
 // Navigation
-       // wwd.navigator.lookAtLocation = new WorldWind.Location(currentPosition.latitude,
-         //   currentPosition.longitude, currentPosition.altitude);
+    /*    wwd.navigator.lookAtLocation = new WorldWind.Location(currentPosition.latitude, currentPosition.longitude, currentPosition.altitude);
 
 // Draw
-       // wwd.redraw();
+        wwd.redraw();
 
 // Update Satellite Position
-       /* var follow = false;
+      //  var follow = false;
         window.setInterval(function () {
             var position = getPosition(satrec, new Date());
             currentPosition.latitude = position.latitude;
@@ -325,14 +349,14 @@ require(['../../src/WorldWind',
             wwd.redraw();
         }, 5000);
 
-      /*  function toCurrentPosition() {
+        function toCurrentPosition() {
             wwd.navigator.lookAtLocation.latitude = currentPosition.latitude;
             wwd.navigator.lookAtLocation.longitude = currentPosition.longitude;
             wwd.navigator.lookAtLocation.altitude = currentPosition.altitude;
-           // wwd.navigator.lookAtLocation.altitude = currentPosition.altitude;
 
-        }
 
+        }*/
+/*
 // Follow Satellite
         var emptyFunction = function (e) {};
         var regularHandlePanOrDrag = wwd.navigator.handlePanOrDrag;
@@ -370,5 +394,57 @@ require(['../../src/WorldWind',
 
         // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
+
+
+
+        // Now set up to handle picking.
+
+        var highlightedItems = [];
+
+        var createOrbit = function (o) {
+            // The input argument is either an Event or a TapRecognizer. Both have the same properties for determining
+            // the mouse or tap location.
+            var x = o.clientX,
+                y = o.clientY;
+
+            var redrawRequired = highlightedItems.length > 0;
+
+            // De-highlight any highlighted placemarks.
+            for (var h = 0; h < highlightedItems.length; h++) {
+                highlightedItems[h].highlighted = false;
+            }
+            highlightedItems = [];
+
+            // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
+            // relative to the upper left corner of the canvas rather than the upper left corner of the page.
+            var rectRadius = 50,
+                pickPoint = wwd.canvasCoordinates(x, y),
+                pickRectangle = new WorldWind.Rectangle(pickPoint[0] - rectRadius, pickPoint[1] + rectRadius,
+                    2 * rectRadius, 2 * rectRadius);
+
+            var pickList = wwd.pickShapesInRegion(pickRectangle);
+            if (pickList.objects.length > 0) {
+                redrawRequired = true;
+            }
+
+            // Highlight the items picked.
+            if (pickList.objects.length > 0) {
+                for (var p = 0; p < pickList.objects.length; p++) {
+                    if (pickList.objects[p].isOnTop) {
+                        pickList.objects[p].userObject.highlighted = true;
+                        highlightedItems.push(pickList.objects[p].userObject);
+                    }
+                }
+            }
+
+            // Update the window if we changed anything.
+            if (redrawRequired) {
+                wwd.redraw();
+            }
+        };
+
+        // Listen for mouse moves and highlight the placemarks that the cursor rolls over.
+        wwd.addEventListener("mousemove", createOrbit);
+
 
     });
