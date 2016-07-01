@@ -256,7 +256,7 @@ require(['../../src/WorldWind',
 
 
 // Orbit Path
-                        var orbitLayer = new WorldWind.RenderableLayer();
+                       /* var orbitLayer = new WorldWind.RenderableLayer();
                          var pathAttributes = new WorldWind.ShapeAttributes(null);
                          pathAttributes.outlineColor = WorldWind.Color.RED;
                          pathAttributes.interiorColor = new WorldWind.Color(1, 0, 0, 0.5);
@@ -278,7 +278,7 @@ require(['../../src/WorldWind',
                          orbitLayer.displayName = sats.name;
                          wwd.addLayer(orbitLayer);
                          orbitLayer.addRenderable(pastOrbitPath);
-                         orbitLayer.addRenderable(futureOrbitPath);
+                         orbitLayer.addRenderable(futureOrbitPath);*/
 
                         //satellites
 
@@ -302,7 +302,7 @@ require(['../../src/WorldWind',
                         highlightPlacemarkAttributes.imageSource = "../apps/SatTracker/satellite.png";
 
                         highlightPlacemarkAttributes.imageScale = .5;
-
+highlightPlacemarkAttributes.ima
 
                         placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
                         placemark.label = sats.name;
