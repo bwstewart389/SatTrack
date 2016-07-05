@@ -10,22 +10,27 @@
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script data-main="SatTracker/SatTracker2" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.17/require.min.js"></script>
     <!--<script src="./SatTracker/satellite.js"></script>-->
-
+    <style>
+        body {
+            margin: 0px;
+            padding: 0px;
+        }
+    </style>
 </head>
-<body style="background-color: black" text="#f0ffff">
+<body style="background-color: white" text="#f0ffff" >
 <div style="width: 700px; margin: 0 auto;">
-    <header style="color:white">
+    <header style="color:black">
         <h1 style="text-align: left">Satellite Tracker</h1>
         <p>Latitude: <span id="latitude"></span> | Longitude: <span id="longitude"></span> | Altitude: <span id="altitude"></span></p>
     </header>
-</div>-->
+</div>
 <div class="container">
     <!--<div class="jumbotron hidden-xs">
         <h1 style="text-align:center">Satellite Tracker</h1>
     </div>-->
     <div class="row">
-        <!--<div>
-            <!--<br>
+        <div class="col-sm-3">
+            <br>
             <h4>Satellite</h4>
             <div class="dropdown" id="satButton">
                 <div>
@@ -46,9 +51,9 @@
                     </button>
                 </span>
             </div>
-        </div>-->
+        </div>
         <div class="col-sm-9" id="globe">
-            <canvas id="canvasOne" width="1050" height="1000" style=color:"white"; "background-color: black; width: 100%; height: auto" >
+            <canvas id="canvasOne" width="1050" height="1000" style= "color:white; background-color: black; width: 100%; height: auto" >
                 Your browser does not support HTML5 Canvas.
             </canvas>
         </div>

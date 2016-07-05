@@ -177,12 +177,12 @@ require(['../../src/WorldWind',
 
        
 
-        window.setInterval(function () {
+
 
             $.get('./SatTracker/TLE.json', function(resp) {
 
 
-                console.log('sat.js downloaded data');
+                //console.log('sat.js downloaded data');
 
 
                 satellites = resp;
@@ -217,10 +217,19 @@ require(['../../src/WorldWind',
                 }
 
                 //loop satellite placemarks and orbit generation
+                var satType = "PAYLOAD";
+                var satLength = satellites.length;
+                var satNum = 10;
 
-                for (var j = 0, len = 10; j < len; j++) {
-                    var sats = satellites[j];
-                    if (sats.OBJECT_TYPE === "PAYLOAD") {
+
+                var satelliteLayer = new WorldWind.RenderableLayer();
+                var orbitLayer = new WorldWind.RenderableLayer();
+                
+                for (var j = 0, len = satNum; j < len; j++) {
+
+                        var sats = satellites[j];
+                    if (sats.OBJECT_TYPE === satType) {
+
 
                         console.log(satellites.TLE_LINE1);
                         console.log(satellites.TLE_LINE2);
@@ -253,11 +262,18 @@ require(['../../src/WorldWind',
                             }
 
                         }
+                    }
+                    
 
+
+                    
 
 // Orbit Path
-                       /* var orbitLayer = new WorldWind.RenderableLayer();
-                         var pathAttributes = new WorldWind.ShapeAttributes(null);
+
+
+                         
+
+                        /* var pathAttributes = new WorldWind.ShapeAttributes(null);
                          pathAttributes.outlineColor = WorldWind.Color.RED;
                          pathAttributes.interiorColor = new WorldWind.Color(1, 0, 0, 0.5);
 
@@ -280,14 +296,15 @@ require(['../../src/WorldWind',
                          orbitLayer.addRenderable(pastOrbitPath);
                          orbitLayer.addRenderable(futureOrbitPath);*/
 
+
+
                         //satellites
-
+                        
                         var placemark = new WorldWind.Placemark(currentPosition);
-
-
+                        
                         var placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
                         placemarkAttributes.imageSource = "../apps/SatTracker/dot-red.png";
-                        placemarkAttributes.imageScale = 0.25;
+                        placemarkAttributes.imageScale = 0.50;
                         placemarkAttributes.imageOffset = new WorldWind.Offset(
                             WorldWind.OFFSET_FRACTION, 0.5,
                             WorldWind.OFFSET_FRACTION, 0.5);
@@ -301,38 +318,43 @@ require(['../../src/WorldWind',
                         var highlightPlacemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
                         highlightPlacemarkAttributes.imageSource = "../apps/SatTracker/satellite.png";
 
-                        highlightPlacemarkAttributes.imageScale = .5;
-highlightPlacemarkAttributes.ima
+                        highlightPlacemarkAttributes.imageScale = 0.8;
+
 
                         placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
                         placemark.label = sats.name;
                         placemark.attributes = placemarkAttributes;
                         placemark.highlightAttributes = highlightPlacemarkAttributes;
 
-                        var satelliteLayer = new WorldWind.RenderableLayer();
+
                         satelliteLayer.displayName = "Satellite";
 
+                        satelliteLayer.removeAllRenderables(placemark);
                         satelliteLayer.addRenderable(placemark);
                         wwd.addLayer(satelliteLayer);
-
-
-                        /* var position = getPosition(satrec, new Date());
-                         currentPosition.latitude = position.latitude;
-                         currentPosition.longitude = position.longitude;
-                         currentPosition.altitude = position.altitude;
-
-                         updateLLA(currentPosition);
-
-
-                         wwd.redraw();*/
-                    }
+                        updateLLA(currentPosition);
+                        wwd.redraw();
+                   // }, 5000);
                 }
+                window.setInterval(function () {
+                for (var j = 0, len = satNum; j < len; j++) {
+                    var position = getPosition(satrec, new Date());
+                    currentPosition.latitude = position.latitude;
+                    currentPosition.longitude = position.longitude;
+                    currentPosition.altitude = position.altitude;
+
+                    updateLLA(currentPosition);
+
+                    wwd.redraw();
+                }
+                    }, 5000);
+
             });
-            }, 5000);
 
 
 
-            
+
+       
 
 
 
@@ -358,26 +380,12 @@ highlightPlacemarkAttributes.ima
     /*    wwd.navigator.lookAtLocation = new WorldWind.Location(currentPosition.latitude, currentPosition.longitude, currentPosition.altitude);
 
 // Draw
-        wwd.redraw();
+        wwd.redraw();*/
 
 // Update Satellite Position
-      //  var follow = false;
-        window.setInterval(function () {
-            var position = getPosition(satrec, new Date());
-            currentPosition.latitude = position.latitude;
-            currentPosition.longitude = position.longitude;
-            currentPosition.altitude = position.altitude;
+      // var follow = false;
 
-            updateLLA(currentPosition);
-
-            if (follow) {
-                toCurrentPosition();
-            }
-
-            wwd.redraw();
-        }, 5000);
-
-        function toCurrentPosition() {
+      /*  function toCurrentPosition() {
             wwd.navigator.lookAtLocation.latitude = currentPosition.latitude;
             wwd.navigator.lookAtLocation.longitude = currentPosition.longitude;
             wwd.navigator.lookAtLocation.altitude = currentPosition.altitude;
