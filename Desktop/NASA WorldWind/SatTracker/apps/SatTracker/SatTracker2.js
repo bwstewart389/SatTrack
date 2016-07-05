@@ -175,7 +175,7 @@ require(['../../src/WorldWind',
 
             wwd.addLayer(groundStationsLayer);
 
-       
+
 
 
 
@@ -222,12 +222,12 @@ require(['../../src/WorldWind',
                 var satNum = 10;
 
 
-                var satelliteLayer = new WorldWind.RenderableLayer();
-                var orbitLayer = new WorldWind.RenderableLayer();
-                
-                for (var j = 0, len = satNum; j < len; j++) {
 
-                        var sats = satellites[j];
+
+                window.setInterval(function () {
+                    for (var j = 0, len = satNum; j < len; j++) {
+                   
+                    var sats = satellites[j];
                     if (sats.OBJECT_TYPE === satType) {
 
 
@@ -263,91 +263,84 @@ require(['../../src/WorldWind',
 
                         }
                     }
-                    
 
-
-                    
 
 // Orbit Path
 
 
-                         
-
-                        /* var pathAttributes = new WorldWind.ShapeAttributes(null);
-                         pathAttributes.outlineColor = WorldWind.Color.RED;
-                         pathAttributes.interiorColor = new WorldWind.Color(1, 0, 0, 0.5);
-
-
-                         var pastOrbitPath = new WorldWind.Path(pastOrbit);
-                         pastOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                         pastOrbitPath.attributes = pathAttributes;
-
-                         var pathAttributes = new WorldWind.ShapeAttributes(pathAttributes);
-                         pathAttributes.outlineColor = WorldWind.Color.GREEN;
-                         pathAttributes.interiorColor = new WorldWind.Color(0, 1, 0, 0.5);
-
-                         var futureOrbitPath = new WorldWind.Path(futureOrbit);
-                         futureOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                         futureOrbitPath.attributes = pathAttributes;
+                    /* var orbitLayer = new WorldWind.RenderableLayer(); 
+                    var pathAttributes = new WorldWind.ShapeAttributes(null);
+                     pathAttributes.outlineColor = WorldWind.Color.RED;
+                     pathAttributes.interiorColor = new WorldWind.Color(1, 0, 0, 0.5);
 
 
-                         orbitLayer.displayName = sats.name;
-                         wwd.addLayer(orbitLayer);
-                         orbitLayer.addRenderable(pastOrbitPath);
-                         orbitLayer.addRenderable(futureOrbitPath);*/
+                     var pastOrbitPath = new WorldWind.Path(pastOrbit);
+                     pastOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+                     pastOrbitPath.attributes = pathAttributes;
+
+                     var pathAttributes = new WorldWind.ShapeAttributes(pathAttributes);
+                     pathAttributes.outlineColor = WorldWind.Color.GREEN;
+                     pathAttributes.interiorColor = new WorldWind.Color(0, 1, 0, 0.5);
+
+                     var futureOrbitPath = new WorldWind.Path(futureOrbit);
+                     futureOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+                     futureOrbitPath.attributes = pathAttributes;
 
 
+                     orbitLayer.displayName = sats.name;
+                     wwd.addLayer(orbitLayer);
+                     orbitLayer.addRenderable(pastOrbitPath);
+                     orbitLayer.addRenderable(futureOrbitPath);*/
 
-                        //satellites
+
+                    //satellites
+
+                    var satelliteLayer = new WorldWind.RenderableLayer();
+                    var placemark = new WorldWind.Placemark(currentPosition);
+                        wwd.removeLayer(satelliteLayer);
+
+                    
+                    var placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
+                    placemarkAttributes.imageSource = "../apps/SatTracker/dot-red.png";
+                    placemarkAttributes.imageScale = 0.50;
+                    placemarkAttributes.imageOffset = new WorldWind.Offset(
+                        WorldWind.OFFSET_FRACTION, 0.5,
+                        WorldWind.OFFSET_FRACTION, 0.5);
+                    placemarkAttributes.imageColor = WorldWind.Color.WHITE;
+                    placemarkAttributes.labelAttributes.offset = new WorldWind.Offset(
+                        WorldWind.OFFSET_FRACTION, 0.5,
+                        WorldWind.OFFSET_FRACTION, 1.0);
+                    placemarkAttributes.labelAttributes.color = WorldWind.Color.WHITE;
+
+
+                    var highlightPlacemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
+                    highlightPlacemarkAttributes.imageSource = "../apps/SatTracker/satellite.png";
+
+                    highlightPlacemarkAttributes.imageScale = 0.8;
+
+
+                    placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+                    placemark.label = sats.name;
+                    placemark.attributes = placemarkAttributes;
+                    placemark.highlightAttributes = highlightPlacemarkAttributes;
+
+
+                   
+
+                    
+                    satelliteLayer.displayName = "Satellite";
                         
-                        var placemark = new WorldWind.Placemark(currentPosition);
-                        
-                        var placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
-                        placemarkAttributes.imageSource = "../apps/SatTracker/dot-red.png";
-                        placemarkAttributes.imageScale = 0.50;
-                        placemarkAttributes.imageOffset = new WorldWind.Offset(
-                            WorldWind.OFFSET_FRACTION, 0.5,
-                            WorldWind.OFFSET_FRACTION, 0.5);
-                        placemarkAttributes.imageColor = WorldWind.Color.WHITE;
-                        placemarkAttributes.labelAttributes.offset = new WorldWind.Offset(
-                            WorldWind.OFFSET_FRACTION, 0.5,
-                            WorldWind.OFFSET_FRACTION, 1.0);
-                        placemarkAttributes.labelAttributes.color = WorldWind.Color.WHITE;
-
-
-                        var highlightPlacemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
-                        highlightPlacemarkAttributes.imageSource = "../apps/SatTracker/satellite.png";
-
-                        highlightPlacemarkAttributes.imageScale = 0.8;
-
-
-                        placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                        placemark.label = sats.name;
-                        placemark.attributes = placemarkAttributes;
-                        placemark.highlightAttributes = highlightPlacemarkAttributes;
-
-
-                        satelliteLayer.displayName = "Satellite";
-
-                        satelliteLayer.removeAllRenderables(placemark);
-                        satelliteLayer.addRenderable(placemark);
-                        wwd.addLayer(satelliteLayer);
-                        updateLLA(currentPosition);
-                        wwd.redraw();
-                   // }, 5000);
-                }
-                window.setInterval(function () {
-                for (var j = 0, len = satNum; j < len; j++) {
-                    var position = getPosition(satrec, new Date());
-                    currentPosition.latitude = position.latitude;
-                    currentPosition.longitude = position.longitude;
-                    currentPosition.altitude = position.altitude;
+                    satelliteLayer.addRenderable(placemark);
+                    wwd.addLayer(satelliteLayer);
 
                     updateLLA(currentPosition);
-
                     wwd.redraw();
+
                 }
-                    }, 5000);
+
+
+
+                }, 5000);
 
             });
 
