@@ -18,77 +18,14 @@ require(['../../src/WorldWind',
             {name: 'Svalbard, Norway', latitude: 78.2306, longitude: 15.3894},
             {name: 'Maspalomas, Spain', latitude: 27.7629, longitude: -15.6338},
         ];
-//Satellites
-        var satellites = [
-            {
-                name: 'ISS',
-                fileName: 'ISS.dae',
-                path: '../apps/SatTracker/collada-models/',
-                useImage: false,
-                initialScale: 5000,
-                maxScale: 1000000,
-                useTexturePaths: true,
-                tle_line_1: '1 25544U 98067A   16167.17503470  .00003196  00000-0  54644-4 0  9994',
-                tle_line_2: '2 25544  51.6428  68.0694 0000324   5.0932 150.3291 15.54558788  4673'
-
-            },
-            {
-                name: 'Hubble',
-                fileName: '',
-                path: '',
-                useImage: true,
-                initialScale: 5000,
-                maxScale: 1000000,
-                useTexturePaths: false,
-                tle_line_1: '1 20580U 90037B   16164.81209214  .00000774  00000-0  37292-4 0  9994',
-                tle_line_2: '2 20580  28.4702 287.6126 0002813 156.6394 338.1735 15.08391210234458'
-            },
-            {
-                name: 'GPS BIIR-2  (PRN 13)',
-                tle_line_1: '1 24876U 97035A   16181.56960744  .00000032  00000-0  00000+0 0  9993',
-                tle_line_2: '2 24876  55.6493 241.0037 0040141 116.1169 244.3734  2.00562589138751'
-            },
-            {
-                name: 'GPS BIIR-3  (PRN 11)',
-                tle_line_1: '1 25933U 99055A   16181.55841275 -.00000053  00000-0  00000+0 0  9992',
-                tle_line_2: '2 25933  51.3971  93.1166 0163280  88.0551 191.1718  2.00563312122570'
-            },
-            { 
-                name: 'GPS BIIR-4  (PRN 20)',
-                tle_line_1: '1 26360U 00025A   16181.56387050  .00000083  00000-0  00000+0 0  9995',
-                tle_line_2: '2 26360  53.0788 169.5980 0043425  78.9897 303.4381  2.00552991118267'
-            },
-            {
-                name: 'GPS BIIR-5  (PRN 28)',
-                tle_line_1: '1 26407U 00040A   16181.59470870 -.00000055  00000-0  00000+0 0  9990',
-                tle_line_2: '2 26407  56.6985 358.8888 0199387 267.4683  58.3939  2.00569325116941'
-            },
-
-            {
-                name: 'GPS BIIR-6  (PRN 14)',
-                tle_line_1: '1 26605U 00071A   16181.75399911  .00001372  00000-0  10000-3 0  9995',
-                tle_line_2: '2 26605  55.2190 238.8619 0090248 248.1213 111.0024  2.00524232114548'
-            },
-            {
-                name: 'GPS BIIR-7  (PRN 18)',
-                tle_line_1: '1 26690U 01004A   16181.42572449  .00000087  00000-0  00000+0 0  9996',
-                tle_line_2: '2 26690  53.0056 172.5696 0174682 252.7938 339.0017  2.00560349112932'
-            },
-            { 
-                name: 'GORIZONT 5 [-]',
-                tle_line_1: '1 13092U 82020A   16182.10038119 -.00000151  00000-0  00000+0 0  9995',
-                tle_line_2: '2 13092  15.0846 337.9584 0034789 157.1687 196.9353  0.98532866 85721'
-            }
-    ];
-
 
 // Tell World Wind to log only warnings and errors.
         WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
 
 // Create the World Window.
-        var wwd = new WorldWind.WorldWindow("canvasOne");
+        var wwd = new WorldWind.ObjectWindow("canvasOne");
+        wwd.navigator.lookAtLocation.altitude = 0;
         wwd.navigator.range = 5e7;
-      
         
 
 
@@ -97,7 +34,10 @@ require(['../../src/WorldWind',
          */
 
         var layers = [
-            {layer: new WorldWind.BMNGLayer(), enabled: true}
+            {layer: new WorldWind.BMNGLayer(), enabled: true},
+            {layer: new WorldWind.CompassLayer(), enabled: true},
+            {layer: new WorldWind.CoordinatesDisplayLayer(wwd), enabled: true},
+            {layer: new WorldWind.ViewControlsLayer(wwd), enabled: true}
         ];
 
 
@@ -185,7 +125,7 @@ require(['../../src/WorldWind',
                 //console.log('sat.js downloaded data');
 
 
-                satellites = resp;
+                var satellites = resp;
                 satellites.satDataString = JSON.stringify(satellites);
 
 
@@ -222,134 +162,151 @@ require(['../../src/WorldWind',
                 var satNum = 10;
 
 
+               /* var orbitLayer = new WorldWind.RenderableLayer();
 
-
-                window.setInterval(function () {
-                    for (var j = 0, len = satNum; j < len; j++) {
-                   
+                for (var j = 0, len = satNum; j < len; j++) {
                     var sats = satellites[j];
-                    if (sats.OBJECT_TYPE === satType) {
 
 
-                        console.log(satellites.TLE_LINE1);
-                        console.log(satellites.TLE_LINE2);
+                    console.log(satellites.TLE_LINE1);
+                    console.log(satellites.TLE_LINE2);
 
-                        var tle_line_1 = sats.TLE_LINE1;
-                        var tle_line_2 = sats.TLE_LINE2;
+                    var tle_line_1 = sats.TLE_LINE1;
+                    var tle_line_2 = sats.TLE_LINE2;
 
-                        var satrec = satellite.twoline2satrec(tle_line_1, tle_line_2);
+                    var satrec = satellite.twoline2satrec(tle_line_1, tle_line_2);
 
-                        var now = new Date();
-                        var pastOrbit = [];
-                        var futureOrbit = [];
-                        var currentPosition = null;
-                        for (var k = -98; k <= 98; k++) {
-                            var time = new Date(now.getTime() + k * 60000);
+                    var now = new Date();
+                    var pastOrbit = [];
+                    var futureOrbit = [];
+                    //var currentPosition = {};
+                    for (var k = -98; k <= 98; k++) {
+                        var time = new Date(now.getTime() + k * 60000);
 
-                            var position = getPosition(satrec, time);
+                        // var position = {};
+                        var orbitPosition = {};
+                        //position = getPosition(satrec, time);
+                        orbitPosition = getPosition(satrec, time);
 
 
-                            if (k < 0) {
-                                pastOrbit.push(position);
-                            } else if (k > 0) {
-                                futureOrbit.push(position);
-                            } else {
-                                currentPosition = new WorldWind.Position(position.latitude,
-                                    position.longitude,
-                                    position.altitude);
-                                pastOrbit.push(position);
-                                futureOrbit.push(position);
-                            }
-
+                        if (k < 0) {
+                            pastOrbit.push(orbitPosition);
+                        } else if (k > 0) {
+                            futureOrbit.push(orbitPosition);
+                        } else {
+                            //  currentPosition = new WorldWind.Position(position.latitude,
+                            //    position.longitude,
+                            //  position.altitude);
+                            pastOrbit.push(orbitPosition);
+                            futureOrbit.push(orbitPosition);
                         }
+
                     }
 
-
-// Orbit Path
-
-
-                    /* var orbitLayer = new WorldWind.RenderableLayer(); 
                     var pathAttributes = new WorldWind.ShapeAttributes(null);
-                     pathAttributes.outlineColor = WorldWind.Color.RED;
-                     pathAttributes.interiorColor = new WorldWind.Color(1, 0, 0, 0.5);
+                    pathAttributes.outlineColor = WorldWind.Color.RED;
+                    pathAttributes.interiorColor = new WorldWind.Color(1, 0, 0, 0.5);
 
 
-                     var pastOrbitPath = new WorldWind.Path(pastOrbit);
-                     pastOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                     pastOrbitPath.attributes = pathAttributes;
+                    var pastOrbitPath = new WorldWind.Path(pastOrbit);
+                    pastOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+                    pastOrbitPath.attributes = pathAttributes;
 
-                     var pathAttributes = new WorldWind.ShapeAttributes(pathAttributes);
-                     pathAttributes.outlineColor = WorldWind.Color.GREEN;
-                     pathAttributes.interiorColor = new WorldWind.Color(0, 1, 0, 0.5);
+                    var pathAttributes = new WorldWind.ShapeAttributes(pathAttributes);
+                    pathAttributes.outlineColor = WorldWind.Color.GREEN;
+                    pathAttributes.interiorColor = new WorldWind.Color(0, 1, 0, 0.5);
 
-                     var futureOrbitPath = new WorldWind.Path(futureOrbit);
-                     futureOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                     futureOrbitPath.attributes = pathAttributes;
+                    var futureOrbitPath = new WorldWind.Path(futureOrbit);
+                    futureOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+                    futureOrbitPath.attributes = pathAttributes;
 
-
-                     orbitLayer.displayName = sats.name;
-                     wwd.addLayer(orbitLayer);
-                     orbitLayer.addRenderable(pastOrbitPath);
-                     orbitLayer.addRenderable(futureOrbitPath);*/
-
-
-                    //satellites
-
-                    var satelliteLayer = new WorldWind.RenderableLayer();
-                    var placemark = new WorldWind.Placemark(currentPosition);
-                        wwd.removeLayer(satelliteLayer);
-
-                    
-                    var placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
-                    placemarkAttributes.imageSource = "../apps/SatTracker/dot-red.png";
-                    placemarkAttributes.imageScale = 0.50;
-                    placemarkAttributes.imageOffset = new WorldWind.Offset(
-                        WorldWind.OFFSET_FRACTION, 0.5,
-                        WorldWind.OFFSET_FRACTION, 0.5);
-                    placemarkAttributes.imageColor = WorldWind.Color.WHITE;
-                    placemarkAttributes.labelAttributes.offset = new WorldWind.Offset(
-                        WorldWind.OFFSET_FRACTION, 0.5,
-                        WorldWind.OFFSET_FRACTION, 1.0);
-                    placemarkAttributes.labelAttributes.color = WorldWind.Color.WHITE;
-
-
-                    var highlightPlacemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
-                    highlightPlacemarkAttributes.imageSource = "../apps/SatTracker/satellite.png";
-
-                    highlightPlacemarkAttributes.imageScale = 0.8;
-
-
-                    placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                    placemark.label = sats.name;
-                    placemark.attributes = placemarkAttributes;
-                    placemark.highlightAttributes = highlightPlacemarkAttributes;
-
-
-                   
-
-                    
-                    satelliteLayer.displayName = "Satellite";
-                        
-                    satelliteLayer.addRenderable(placemark);
-                    wwd.addLayer(satelliteLayer);
-
-                    updateLLA(currentPosition);
-                    wwd.redraw();
-
+                    orbitLayer.addRenderable(pastOrbitPath);
+                    orbitLayer.addRenderable(futureOrbitPath);
                 }
 
+                orbitLayer.displayName = 'Orbit';
+                wwd.addLayer(orbitLayer);*/
 
 
-                }, 5000);
+                    var satelliteLayer = new WorldWind.RenderableLayer();
 
-            });
+                var placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
+                placemarkAttributes.imageSource = "../apps/SatTracker/dot-red.png";
+                placemarkAttributes.imageScale = 0.50;
+                placemarkAttributes.imageOffset = new WorldWind.Offset(
+                    WorldWind.OFFSET_FRACTION, 0.5,
+                    WorldWind.OFFSET_FRACTION, 0.5);
+                placemarkAttributes.imageColor = WorldWind.Color.WHITE;
+                placemarkAttributes.labelAttributes.offset = new WorldWind.Offset(
+                    WorldWind.OFFSET_FRACTION, 0.5,
+                    WorldWind.OFFSET_FRACTION, 1.0);
+                placemarkAttributes.labelAttributes.color = WorldWind.Color.WHITE;
 
 
 
 
-       
+                var highlightPlacemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
+                highlightPlacemarkAttributes.imageSource = "../apps/SatTracker/satellite.png";
+                highlightPlacemarkAttributes.imageScale = 0.8;
+
+              //  window.setInterval(function () {
+                    for (var j = 0, len = satNum; j < len; j++) {
+
+                        var sats = satellites[j];
 
 
+                            console.log(satellites.TLE_LINE1);
+                            console.log(satellites.TLE_LINE2);
+
+                            var tle_line_1 = sats.TLE_LINE1;
+                            var tle_line_2 = sats.TLE_LINE2;
+
+                            var satrec = satellite.twoline2satrec(tle_line_1, tle_line_2);
+
+                            var now = new Date();
+                            var pastOrbit = [];
+                            var futureOrbit = [];
+                            var currentPosition = {};
+                            for (var k = -98; k <= 98; k++) {
+                                var time = new Date(now.getTime()/* + k * 60000*/);
+
+                                var position = {};
+                                var orbitPosition= {};
+                                position = getPosition(satrec, time);
+                                orbitPosition = getPosition(satrec, time);
+
+
+                                if (k < 0) {
+                                    pastOrbit.push(orbitPosition);
+                                } else if (k > 0) {
+                                    futureOrbit.push(orbitPosition);
+                                } else {
+                                    currentPosition = new WorldWind.Position(position.latitude,
+                                        position.longitude,
+                                        position.altitude);
+                                    pastOrbit.push(orbitPosition);
+                                    futureOrbit.push(orbitPosition);
+                                }
+
+                        }
+
+
+                        var placemark = new WorldWind.Placemark(currentPosition);
+
+                        placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+                        //placemark.label = sats.OBJECT_NAME;
+                        placemark.label = sats.OBJECT_NAME + i.toString() + "\n"
+                            + "Lat " + placemark.position.latitude.toPrecision(4).toString() + "\n"
+                            + "Lon " + placemark.position.longitude.toPrecision(5).toString();
+                        placemark.attributes = placemarkAttributes;
+                        placemark.highlightAttributes = highlightPlacemarkAttributes;
+
+                        wwd.redraw();
+                        satelliteLayer.addRenderable(placemark);
+                    }
+                satelliteLayer.displayName = "Satellite";
+                wwd.addLayer(satelliteLayer);
+               // }, 5000);
 
 
 
@@ -385,7 +342,7 @@ require(['../../src/WorldWind',
 
 
         }*/
-/*
+
 // Follow Satellite
         var emptyFunction = function (e) {};
         var regularHandlePanOrDrag = wwd.navigator.handlePanOrDrag;
@@ -395,20 +352,13 @@ require(['../../src/WorldWind',
 
 
 
-       /* var follow = document.getElementById('follow');
+        var follow = document.getElementById('follow');
         follow.onclick = toggleFollow;
         function toggleFollow() {
 
             follow = !follow;
-            if (follow) {
-                followPlaceholder.textContent = 'Follow On';
-                wwd.navigator.handlePanOrDrag = emptyFunction;
-                wwd.navigator.handleSecondaryDrag = emptyFunction;
-                wwd.navigator.handleTilt = emptyFunction;
-                wwd.navigator.lookAtLocation.range = currentPosition.altitude;
+            if (!follow) {
 
-
-            } else {
                 followPlaceholder.textContent = 'Follow Off';
                 wwd.navigator.handlePanOrDrag = regularHandlePanOrDrag;
                 wwd.navigator.handleSecondaryDrag = regularHandleSecondaryDrag;
@@ -419,7 +369,7 @@ require(['../../src/WorldWind',
 
             wwd.redraw();
             return false;
-        }*/
+        }
 
 
 
@@ -432,11 +382,11 @@ require(['../../src/WorldWind',
 
         var highlightedItems = [];
 
-        var createOrbit = function (o) {
+        var handleClick = function (recognizer) {
             // The input argument is either an Event or a TapRecognizer. Both have the same properties for determining
             // the mouse or tap location.
-            var x = o.clientX,
-                y = o.clientY;
+            var x = recognizer.clientX,
+                y = recognizer.clientY;
 
             var redrawRequired = highlightedItems.length > 0;
 
@@ -458,6 +408,8 @@ require(['../../src/WorldWind',
                 redrawRequired = true;
             }
 
+            
+            
             // Highlight the items picked.
             if (pickList.objects.length > 0) {
                 for (var p = 0; p < pickList.objects.length; p++) {
@@ -465,8 +417,23 @@ require(['../../src/WorldWind',
                         pickList.objects[p].userObject.highlighted = true;
                         highlightedItems.push(pickList.objects[p].userObject);
                     }
+                    
                 }
             }
+
+            if (pickList.objects.length == 1 && pickList.objects[0]) {
+                var position = pickList.objects[0].position;
+                wwd.goTo(new WorldWind.Position(position.latitude, position.longitude, position.altitude + 100000));
+                wwd.navigator.lookAtLocation.altitude = position.altitude;
+                updateLLA(currentPosition);
+            }
+
+            if (pickList.objects.length == 1 && pickList.objects[0]) {
+
+
+
+            }
+
 
             // Update the window if we changed anything.
             if (redrawRequired) {
@@ -474,8 +441,12 @@ require(['../../src/WorldWind',
             }
         };
 
-        // Listen for mouse moves and highlight the placemarks that the cursor rolls over.
-        wwd.addEventListener("mousemove", createOrbit);
 
+        // Listen for mouse clicks.
+        var clickRecognizer = new WorldWind.ClickRecognizer(wwd, handleClick);
 
+        // Listen for taps on mobile devices.
+        var tapRecognizer = new WorldWind.TapRecognizer(wwd, handleClick);
+
+            });
     });
