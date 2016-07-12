@@ -120,13 +120,8 @@ require(['../../src/WorldWind',
 
 
             $.get('./SatTracker/TLE.json', function(resp) {
-
-
-                //console.log('sat.js downloaded data');
-
-
-                var satellites = resp;
-                satellites.satDataString = JSON.stringify(satellites);
+                var satData = resp;
+                satData.satDataString = JSON.stringify(satData);
 
 
 // Orbit Propagation (MIT License, see https://github.com/shashwatak/satellite-js)
@@ -141,95 +136,89 @@ require(['../../src/WorldWind',
                         time.getUTCSeconds());
                     var position_eci = position_and_velocity["position"];
 
-                    var gmst = satellite.gstime_from_date(time.getUTCFullYear(),
+                    var gmst = satellite.gstime_from_date (time.getUTCFullYear(),
                         time.getUTCMonth() + 1,
                         time.getUTCDate(),
                         time.getUTCHours(),
                         time.getUTCMinutes(),
                         time.getUTCSeconds());
 
-                    var position_gd = satellite.eci_to_geodetic(position_eci, gmst);
-                    var latitude = satellite.degrees_lat(position_gd["latitude"]);
-                    var longitude = satellite.degrees_long(position_gd["longitude"]);
-                    var altitude = position_gd["height"] * 1000;
+                    var position_gd = satellite.eci_to_geodetic (position_eci, gmst);
+                    var latitude    = satellite.degrees_lat(position_gd["latitude"]);
+                    var longitude   = satellite.degrees_long(position_gd["longitude"]);
+                    var altitude    = position_gd["height"] * 1000;
 
                     return new WorldWind.Position(latitude, longitude, altitude);
                 }
 
-                //loop satellite placemarks and orbit generation
-                var satType = "PAYLOAD";
-                var satLength = satellites.length;
-                var satNum = 10;
 
+                var now = new Date();
+                var everyPastOrbit = [];
+                var everyFutureOrbit = [];
+                var everyCurrentPosition = [];
 
-               /* var orbitLayer = new WorldWind.RenderableLayer();
-
-                for (var j = 0, len = satNum; j < len; j++) {
-                    var sats = satellites[j];
-
-
-                    console.log(satellites.TLE_LINE1);
-                    console.log(satellites.TLE_LINE2);
-
-                    var tle_line_1 = sats.TLE_LINE1;
-                    var tle_line_2 = sats.TLE_LINE2;
-
-                    var satrec = satellite.twoline2satrec(tle_line_1, tle_line_2);
-
-                    var now = new Date();
+                for (var j = 0; j < 10; j += 1) {
                     var pastOrbit = [];
                     var futureOrbit = [];
-                    //var currentPosition = {};
-                    for (var k = -98; k <= 98; k++) {
-                        var time = new Date(now.getTime() + k * 60000);
+                    var currentPosition = null;
+                    for (var i = -98; i <= 98; i++) {
+                        var time = new Date(now.getTime() + i * 60000);
 
-                        // var position = {};
-                        var orbitPosition = {};
-                        //position = getPosition(satrec, time);
-                        orbitPosition = getPosition(satrec, time);
+                        var position = getPosition(satellite.twoline2satrec(satData[j].TLE_LINE1, satData[j].TLE_LINE2), time);
 
-
-                        if (k < 0) {
-                            pastOrbit.push(orbitPosition);
-                        } else if (k > 0) {
-                            futureOrbit.push(orbitPosition);
+                        if (i < 0) {
+                            pastOrbit.push(position);
+                        } else if (i > 0) {
+                            futureOrbit.push(position);
                         } else {
-                            //  currentPosition = new WorldWind.Position(position.latitude,
-                            //    position.longitude,
-                            //  position.altitude);
-                            pastOrbit.push(orbitPosition);
-                            futureOrbit.push(orbitPosition);
+                            currentPosition = new WorldWind.Position(position.latitude,
+                                position.longitude,
+                                position.altitude);
+                            pastOrbit.push(position);
+                            futureOrbit.push(position);
+                            everyCurrentPosition[j] = currentPosition;
                         }
-
                     }
-
-                    var pathAttributes = new WorldWind.ShapeAttributes(null);
-                    pathAttributes.outlineColor = WorldWind.Color.RED;
-                    pathAttributes.interiorColor = new WorldWind.Color(1, 0, 0, 0.5);
-
-
-                    var pastOrbitPath = new WorldWind.Path(pastOrbit);
-                    pastOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                    pastOrbitPath.attributes = pathAttributes;
-
-                    var pathAttributes = new WorldWind.ShapeAttributes(pathAttributes);
-                    pathAttributes.outlineColor = WorldWind.Color.GREEN;
-                    pathAttributes.interiorColor = new WorldWind.Color(0, 1, 0, 0.5);
-
-                    var futureOrbitPath = new WorldWind.Path(futureOrbit);
-                    futureOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                    futureOrbitPath.attributes = pathAttributes;
-
-                    orbitLayer.addRenderable(pastOrbitPath);
-                    orbitLayer.addRenderable(futureOrbitPath);
+                    everyPastOrbit[j] = pastOrbit;
+                    everyFutureOrbit[j] = futureOrbit;
                 }
 
-                orbitLayer.displayName = 'Orbit';
-                wwd.addLayer(orbitLayer);*/
+
+// Orbit Path
+                var pastOrbitPathAttributes = new WorldWind.ShapeAttributes(null);
+                pastOrbitPathAttributes.outlineColor = WorldWind.Color.RED;
+                pastOrbitPathAttributes.interiorColor = new WorldWind.Color(1, 0, 0, 0.5);
+
+                var futureOrbitPathAttributes = new WorldWind.ShapeAttributes(null);//pastAttributes
+                futureOrbitPathAttributes.outlineColor = WorldWind.Color.GREEN;
+                futureOrbitPathAttributes.interiorColor = new WorldWind.Color(0, 1, 0, 0.5);
+
+                var orbitsLayer = new WorldWind.RenderableLayer("Orbit");
+
+//var everyPastOrbitPath = [];
+//var everyFutureOrbitPath = [];
+
+                for (var index = 0; index < 10; index += 1) {
+                    var pastOrbitPath = new WorldWind.Path(everyPastOrbit[index]);
+                    pastOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+                    pastOrbitPath.attributes = pastOrbitPathAttributes;
+
+                    var futureOrbitPath = new WorldWind.Path(everyFutureOrbit[index]);
+                    futureOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+                    futureOrbitPath.attributes = futureOrbitPathAttributes;
+
+                    orbitsLayer.addRenderable(pastOrbitPath);
+                    orbitsLayer.addRenderable(futureOrbitPath);
+
+                    //everyPastOrbitPath[index] = pastOrbitPath;
+                    //everyFutureOrbitPath[index] = futureOrbitPath;
+                }
 
 
-                    var satelliteLayer = new WorldWind.RenderableLayer();
 
+
+
+// Satellite
                 var placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
                 placemarkAttributes.imageSource = "../apps/SatTracker/dot-red.png";
                 placemarkAttributes.imageScale = 0.50;
@@ -243,70 +232,30 @@ require(['../../src/WorldWind',
                 placemarkAttributes.labelAttributes.color = WorldWind.Color.WHITE;
 
 
-
-
                 var highlightPlacemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
                 highlightPlacemarkAttributes.imageSource = "../apps/SatTracker/satellite.png";
                 highlightPlacemarkAttributes.imageScale = 0.8;
 
-              //  window.setInterval(function () {
-                    for (var j = 0, len = satNum; j < len; j++) {
-
-                        var sats = satellites[j];
+                var satellitesLayer = new WorldWind.RenderableLayer("Satellite");
 
 
-                            console.log(satellites.TLE_LINE1);
-                            console.log(satellites.TLE_LINE2);
-
-                            var tle_line_1 = sats.TLE_LINE1;
-                            var tle_line_2 = sats.TLE_LINE2;
-
-                            var satrec = satellite.twoline2satrec(tle_line_1, tle_line_2);
-
-                            var now = new Date();
-                            var pastOrbit = [];
-                            var futureOrbit = [];
-                            var currentPosition = {};
-                            for (var k = -98; k <= 98; k++) {
-                                var time = new Date(now.getTime()/* + k * 60000*/);
-
-                                var position = {};
-                                var orbitPosition= {};
-                                position = getPosition(satrec, time);
-                                orbitPosition = getPosition(satrec, time);
+                for (var ind = 0; ind < 10; ind += 1) {
+                    var placemark = new WorldWind.Placemark(everyCurrentPosition[ind]);
+//updateLLA(currentPosition);
 
 
-                                if (k < 0) {
-                                    pastOrbit.push(orbitPosition);
-                                } else if (k > 0) {
-                                    futureOrbit.push(orbitPosition);
-                                } else {
-                                    currentPosition = new WorldWind.Position(position.latitude,
-                                        position.longitude,
-                                        position.altitude);
-                                    pastOrbit.push(orbitPosition);
-                                    futureOrbit.push(orbitPosition);
-                                }
+//placemark.label = "Sentinel 1A";
+                    placemark.label = satData[ind].OBJECT_NAME;
 
-                        }
+                    placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+                    placemark.attributes = placemarkAttributes;
+                    placemark.highlightAttributes = highlightPlacemarkAttributes;
 
+                    satellitesLayer.addRenderable(placemark);
+                }
+                //wwd.addLayer(orbitsLayer);
+                wwd.addLayer(satellitesLayer);
 
-                        var placemark = new WorldWind.Placemark(currentPosition);
-
-                        placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                        //placemark.label = sats.OBJECT_NAME;
-                        placemark.label = sats.OBJECT_NAME + i.toString() + "\n"
-                            + "Lat " + placemark.position.latitude.toPrecision(4).toString() + "\n"
-                            + "Lon " + placemark.position.longitude.toPrecision(5).toString();
-                        placemark.attributes = placemarkAttributes;
-                        placemark.highlightAttributes = highlightPlacemarkAttributes;
-
-                        wwd.redraw();
-                        satelliteLayer.addRenderable(placemark);
-                    }
-                satelliteLayer.displayName = "Satellite";
-                wwd.addLayer(satelliteLayer);
-               // }, 5000);
 
 
 
@@ -327,24 +276,35 @@ require(['../../src/WorldWind',
          //end collada*/
         
 // Navigation
-    /*    wwd.navigator.lookAtLocation = new WorldWind.Location(currentPosition.latitude, currentPosition.longitude, currentPosition.altitude);
+    //    wwd.navigator.lookAtLocation = new WorldWind.Location(currentPosition.latitude, currentPosition.longitude, currentPosition.altitude);
 
 // Draw
-        wwd.redraw();*/
+        wwd.redraw();
 
 // Update Satellite Position
-      // var follow = false;
+                var follow = false;
+                window.setInterval(function() {
+                    for (var indx = 0; indx < 10; indx += 1) {
+                        var position = getPosition(satellite.twoline2satrec(satData[indx].TLE_LINE1, satData[indx].TLE_LINE2), new Date());
+                        everyCurrentPosition[indx].latitude = position.latitude;
+                        everyCurrentPosition[indx].longitude = position.longitude;
+                        everyCurrentPosition[indx].altitude = position.altitude;
 
-      /*  function toCurrentPosition() {
-            wwd.navigator.lookAtLocation.latitude = currentPosition.latitude;
-            wwd.navigator.lookAtLocation.longitude = currentPosition.longitude;
-            wwd.navigator.lookAtLocation.altitude = currentPosition.altitude;
+                        //updateLLA(currentPosition);
 
 
-        }*/
+
+                        if (follow) {
+                            toCurrentPosition();
+                        }
+
+                        wwd.redraw();
+                    }
+                }, 1000);
+
 
 // Follow Satellite
-        var emptyFunction = function (e) {};
+      /*  var emptyFunction = function (e) {};
         var regularHandlePanOrDrag = wwd.navigator.handlePanOrDrag;
         var regularHandleSecondaryDrag = wwd.navigator.handleSecondaryDrag;
         var regularHandleTilt = wwd.navigator.handleTilt;
@@ -369,7 +329,7 @@ require(['../../src/WorldWind',
 
             wwd.redraw();
             return false;
-        }
+        }*/
 
 
 
@@ -424,15 +384,19 @@ require(['../../src/WorldWind',
             if (pickList.objects.length == 1 && pickList.objects[0]) {
                 var position = pickList.objects[0].position;
                 wwd.goTo(new WorldWind.Position(position.latitude, position.longitude, position.altitude + 100000));
-                wwd.navigator.lookAtLocation.altitude = position.altitude;
-                updateLLA(currentPosition);
+               /* window.setInterval(function() {
+                    
+                wwd.navigator.lookAtLocation.altitude = everyCurrentPosition[everyCurrentPosition.indexOf(position)].altitude;
+                wwd.navigator.lookAtLocation.latitude = everyCurrentPosition[everyCurrentPosition.indexOf(position)].latitude;
+                wwd.navigator.lookAtLocation.longitude = everyCurrentPosition[everyCurrentPosition.indexOf(position)].longitude;
+
+                    wwd.redraw();
+                    updateLLA(position);
+                }, 1000);*/
+                console.log(everyCurrentPosition.indexOf(position));
+
             }
 
-            if (pickList.objects.length == 1 && pickList.objects[0]) {
-
-
-
-            }
 
 
             // Update the window if we changed anything.
