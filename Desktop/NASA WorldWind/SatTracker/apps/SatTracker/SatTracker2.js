@@ -235,25 +235,6 @@ require(['../../src/WorldWind',
                 wwd.addLayer(satellitesLayer);
 
 
-
-
-// Satellite Collada
-
-        /* var modelLayer = new WorldWind.RenderableLayer("Model");
-         wwd.addLayer(modelLayer);
-
-         var position = new WorldWind.Position(currentPosition.latitude, currentPosition.longitude, currentPosition.altitude);
-         updateLLA(currentPosition.latitude, currentPosition.longitude, currentPosition.altitude);
-         var colladaLoader = new WorldWind.ColladaLoader(currentPosition);
-         colladaLoader.init({dirPath: '../apps/SatTracker/collada-models/'});
-         colladaLoader.load('ISS.dae', function (scene) {
-         scene.scale = 5000;
-         modelLayer.addRenderable(scene);
-
-         });
-         //end collada*/
-
-
 // Draw
         wwd.redraw();
 
@@ -407,8 +388,9 @@ require(['../../src/WorldWind',
                 ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
                 ctx2d.fill();
 
+                
                     // Create the mesh's positions, which are the center point of a circle followed by points on the circle.
-                    meshPositions.push(everyCurrentPosition[index]);// the mesh center
+                    meshPositions.push(satPos);// the mesh center
                     wwd.redraw();
                     texCoords.push(new WorldWind.Vec2(0.5, 0.5));
 
@@ -587,12 +569,11 @@ require(['../../src/WorldWind',
                         placemarkLabelAttributes.labelAttributes.color = WorldWind.Color.WHITE;
 
                         var placemarkLabel = new WorldWind.Placemark(satPos);
+
                         placemarkLabel.label = satData[index].OBJECT_NAME;
                         placemarkLabel.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
                         placemarkLabel.attributes = placemarkLabelAttributes;
                         orbitsLayer.addRenderable(placemarkLabel);
-
-
                     }
 
                     // Update the window if we changed anything.
