@@ -344,8 +344,7 @@ require(['../../src/WorldWind',
                     toCurrentPosition();
                 }, 3000);
 
-                //hide image so collada can be displayed
-                satellitesLayer.removeRenderable(placemark);
+                //hide image so collada can be display
                 highlightPlacemarkAttributes.imageSource = '';
                 highlightPlacemarkAttributes.imageScale = 0.0;
 
