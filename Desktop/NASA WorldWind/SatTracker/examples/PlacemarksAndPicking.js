@@ -141,7 +141,7 @@ requirejs(['../src/WorldWind',
             if (pickList.objects.length > 0) {
                 redrawRequired = true;
             }
-
+console.table(pickList);
             // Highlight the items picked by simply setting their highlight flag to true.
             if (pickList.objects.length > 0) {
                 for (var p = 0; p < pickList.objects.length; p++) {

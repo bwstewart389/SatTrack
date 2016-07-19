@@ -117,10 +117,13 @@ require(['../../src/WorldWind',
 
 
 
-            $.get('./SatTracker/TLE.json', function(resp) {
-                var satData = resp;
+            $.get('./SatTracker/payloadsTLE.json', function(payloads) {
+                $.get('./SatTracker/rocketStagesTLE.json', function(rockets) {
+                    $.get('./SatTracker/debrisTLE.json', function(debris) {
+
+                var satData = payloads;
                 satData.satDataString = JSON.stringify(satData);
-                var satNum = 1500;
+                var satNum = satData.length;
 
 // Orbit Propagation (MIT License, see https://github.com/shashwatak/satellite-js)
 
@@ -154,16 +157,20 @@ require(['../../src/WorldWind',
                 var everyPastOrbit = [];
                 var everyFutureOrbit = [];
                 var everyCurrentPosition = [];
+                //var orbitTime = [];
+
 
                 for (var j = 0; j < satNum; j += 1) {
                     var pastOrbit = [];
                     var futureOrbit = [];
                     var currentPosition = null;
                     for (var i = -98; i <= 98; i++) {
-                        var time = new Date(now.getTime() + i * 600000);
-
-                        var position = getPosition(satellite.twoline2satrec(satData[j].TLE_LINE1, satData[j].TLE_LINE2), time);
-
+                        var time = new Date(now.getTime() + i * 60000);
+                       // orbitTime[i] = new Date(now.getTime() + i * 60000);
+                        //console.log(orbitTime[i]);
+                        try {
+                            var position = getPosition(satellite.twoline2satrec(satData[j].TLE_LINE1, satData[j].TLE_LINE2), time);
+                        } catch(err){}
                         if (i < 0) {
                             pastOrbit.push(position);
                         } else if (i > 0) {
@@ -202,12 +209,12 @@ require(['../../src/WorldWind',
 
                 for (var ind = 0; ind < satNum; ind += 1) {
                     var placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
-                    if (satData[ind].OBJECT_TYPE === "PAYLOAD") {
+                    if (satData = payloads) {
                         placemarkAttributes.imageSource = "../apps/SatTracker/dot-red.png";
-                        placemarkAttributes.imageScale = 0.50;
-                    } else if (satData[ind].OBJECT_TYPE === "ROCKET BODY") {
-                        placemarkAttributes.imageSource = "../apps/SatTracker/dot-blue.png";
                         placemarkAttributes.imageScale = 0.35;
+                    } else if ( satData = rockets) {
+                        placemarkAttributes.imageSource = "../apps/SatTracker/dot-blue.png";
+                        placemarkAttributes.imageScale = 0.30;
                     } else {
                         placemarkAttributes.imageSource = "../apps/SatTracker/dot-grey.png";
                         placemarkAttributes.imageScale = 0.25;
@@ -231,8 +238,10 @@ require(['../../src/WorldWind',
                 }
 
                 var modelLayer = new WorldWind.RenderableLayer("Model");
+                var meshLayer = new WorldWind.RenderableLayer();
 
                 wwd.addLayer(groundStationsLayer);
+                wwd.addLayer(meshLayer);
                 wwd.addLayer(modelLayer);
                 wwd.addLayer(orbitsLayer);
                 wwd.addLayer(satellitesLayer);
@@ -277,6 +286,7 @@ require(['../../src/WorldWind',
                 highlightedItems[h].highlighted = false;
                 orbitsLayer.removeAllRenderables();
                 modelLayer.removeAllRenderables();
+                meshLayer.removeAllRenderables();
                 toCurrentPosition = function () {};
             }
             highlightedItems = [];
@@ -295,6 +305,7 @@ require(['../../src/WorldWind',
                 var position = pickList.objects[0].position;
                 wwd.goTo(new WorldWind.Location(position.latitude, position.longitude));
                 modelLayer.removeAllRenderables();
+                meshLayer.removeAllRenderables();
                 toCurrentPosition = function () {};
 
             }
@@ -340,63 +351,32 @@ require(['../../src/WorldWind',
                     wwd.navigator.lookAtLocation.longitude = satPos.longitude;
                     // wwd.navigator.lookAtLocation.altitude = satPos.altitude;
                     //console.log(everyCurrentPosition[index].latitude);
-                };
-                    toCurrentPosition();
-                }, 3000);
 
-                //hide image so collada can be display
-                highlightPlacemarkAttributes.imageSource = '';
-                highlightPlacemarkAttributes.imageScale = 0.0;
+                    meshLayer.removeAllRenderables();
+                    //triange mesh
+                    var altitude = 100e3,
+                        numRadialPositions = 40,
+                        meshPositions = [],
+                        meshIndices = [],
+                        outlineIndices = [],
+                        texCoords = [],
+                        meshRadius = 5; // degrees
 
-                placemarkAttributes.imageSource = '';
-                placemarkAttributes.imageScale = 0.0;
+                    var canvas = document.createElement("canvas"),
+                        ctx2d = canvas.getContext("2d"),
+                        size = 64, c = size / 2 - 0.5, innerRadius = 5, outerRadius = 20;
 
-                //plot orbit on click
-                var pastOrbitPath = new WorldWind.Path(everyPastOrbit[index]);
-                pastOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                pastOrbitPath.attributes = pastOrbitPathAttributes;
+                    canvas.width = size;
+                    canvas.height = size;
 
-                var futureOrbitPath = new WorldWind.Path(everyFutureOrbit[index]);
-                futureOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                futureOrbitPath.attributes = futureOrbitPathAttributes;
+                    var gradient = ctx2d.createRadialGradient(c, c, innerRadius, c, c, outerRadius);
+                     gradient.addColorStop(0, 'rgb(255, 0, 0)');
+                     gradient.addColorStop(0.5, 'rgb(0, 255, 0)');
+                     gradient.addColorStop(1, 'rgb(255, 0, 0)');
 
-                modelLayer.addRenderable(pastOrbitPath);
-                modelLayer.addRenderable(futureOrbitPath);
-
-
-
-                //create 3D collada model
-                var colladaLoader = new WorldWind.ColladaLoader(satPos);
-                colladaLoader.init({dirPath: '../apps/SatTracker/collada-models/'});
-                colladaLoader.load('ISS.dae', function (scene) {
-                    scene.scale = 5000;
-                    modelLayer.addRenderable(scene);
-                });
-
-                //triange mesh
-           /*     var altitude = 100e3,
-                    numRadialPositions = 40,
-                    meshPositions = [],
-                    meshIndices = [],
-                    outlineIndices = [],
-                    texCoords = [],
-                    meshRadius = 5; // degrees
-
-                var canvas = document.createElement("canvas"),
-                    ctx2d = canvas.getContext("2d"),
-                    size = 64, c = size / 2 - 0.5, innerRadius = 5, outerRadius = 20;
-
-                canvas.width = size;
-                canvas.height = size;
-
-                var gradient = ctx2d.createRadialGradient(c, c, innerRadius, c, c, outerRadius);
-               // gradient.addColorStop(0, 'rgb(255, 0, 0)');
-               // gradient.addColorStop(0.5, 'rgb(0, 255, 0)');
-               // gradient.addColorStop(1, 'rgb(255, 0, 0)');
-
-                ctx2d.fillStyle = gradient;
-                ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
-                ctx2d.fill();
+                    ctx2d.fillStyle = gradient;
+                    ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
+                    ctx2d.fill();
 
 
                     // Create the mesh's positions, which are the center point of a circle followed by points on the circle.
@@ -459,11 +439,44 @@ require(['../../src/WorldWind',
                     mesh.highlightAttributes = highlightAttributes;
 
                     // Add the mesh to a layer and the layer to the World Window's layer list.
-                    var meshLayer = new WorldWind.RenderableLayer();
                     meshLayer.displayName = "Triangle Mesh";
                     meshLayer.addRenderable(mesh);
-                    wwd.addLayer(meshLayer); */
                     updateLLA(position);
+                };
+                    toCurrentPosition();
+                }, 3000);
+
+                //hide image so collada can be display
+                highlightPlacemarkAttributes.imageSource = '';
+                highlightPlacemarkAttributes.imageScale = 0.0;
+
+                placemarkAttributes.imageSource = '';
+                placemarkAttributes.imageScale = 0.0;
+
+                //plot orbit on click
+
+
+                var pastOrbitPath = new WorldWind.Path(everyPastOrbit[index]);
+                pastOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+                pastOrbitPath.attributes = pastOrbitPathAttributes;
+
+
+                var futureOrbitPath = new WorldWind.Path(everyFutureOrbit[index]);
+                futureOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+                futureOrbitPath.attributes = futureOrbitPathAttributes;
+
+                modelLayer.addRenderable(pastOrbitPath);
+                modelLayer.addRenderable(futureOrbitPath);
+
+
+
+                //create 3D collada model
+                var colladaLoader = new WorldWind.ColladaLoader(satPos);
+                colladaLoader.init({dirPath: '../apps/SatTracker/collada-models/'});
+                colladaLoader.load('ISS.dae', function (scene) {
+                    scene.scale = 5000;
+                    modelLayer.addRenderable(scene);
+                });
 
             }
 
@@ -544,6 +557,7 @@ require(['../../src/WorldWind',
                         pastOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
                         pastOrbitPath.attributes = pastOrbitPathAttributes;
 
+
                         var futureOrbitPath = new WorldWind.Path(everyFutureOrbit[index]);
                         futureOrbitPath.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
                         futureOrbitPath.attributes = futureOrbitPathAttributes;
@@ -592,5 +606,7 @@ require(['../../src/WorldWind',
                 var layerManger = new LayerManager(wwd);
 
                 wwd.redraw();
+                    });
+                });
             });
     });
