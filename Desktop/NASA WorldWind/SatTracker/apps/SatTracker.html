@@ -15,18 +15,30 @@
 
 <body>
         <div id="globe" class="container; width: 100%; height: auto">
-            <canvas id="canvasOne" style= "color:white; background-color: black; width: 100%; height: auto" >
+            <canvas id="canvasOne" style= "color:white; background-image: url('./SatTracker/bluespace.jpg'); width: 100%; height: auto" >
                 Your browser does not support HTML5 Canvas.
             </canvas>
                 <div id="overlay">
                     <header style="color:white">
                         <h1 style="text-align: left">Satellite Tracker</h1>
                         <p>Latitude: <span id="latitude"></span> | Longitude: <span id="longitude"></span> | Altitude: <span id="altitude"></span></p>
-                    <!--<p><a id="payloads">Payloads</a> | <a id="rockets">Rockets</a> | <a id="debris">Debris</a></p>-->
+                        <div style="color:black">
+                            <button class="user" data-name="payloads">Payloads</button>
+                            <button class="user" data-name="rockets">Rocket Bodies</button>
+                            <button class="user" data-name="debris">Debris</button>
+                        </div>
+                        <br>
+                        <div style="color:black">
+                            <button class='follow'>Follow On</button>
+                            <button class='mesh'>Mesh On</button>
+                        </div>
                     </header>
-                    <div class="col-sm-2"; style="width: 80%">
+                    <div class="col-sm-2" style="width: 200px">
                         <h4>Projection</h4>
                         <div class="dropdown" id="projectionDropdown">
+                        </div>
+                        <h4>Layers</h4>
+                        <div class="list-group" id="layerList">
                         </div>
                     </div>
                 </div>

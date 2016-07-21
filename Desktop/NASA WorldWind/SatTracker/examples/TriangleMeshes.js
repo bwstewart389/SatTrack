@@ -79,22 +79,22 @@ requirejs(['../src/WorldWind',
 
         // Create the mesh's attributes. Light this mesh.
         var meshAttributes = new WorldWind.ShapeAttributes(null);
-        meshAttributes.outlineColor = WorldWind.Color.BLUE;
-        meshAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 0.7);
-        meshAttributes.imageSource = "../images/400x230-splash-nww.png";
-        meshAttributes.applyLighting = true;
+        meshAttributes.outlineColor = new WorldWind.Color(51, 51, 255, 0.03);
+        meshAttributes.interiorColor = new WorldWind.Color(255, 255, 51, 0.030);
+       // meshAttributes.imageSource = "../images/400x230-splash-nww.png";
+        meshAttributes.applyLighting = false;
 
-        // Create the mesh's highlight attributes.
+       /* // Create the mesh's highlight attributes.
         var highlightAttributes = new WorldWind.ShapeAttributes(meshAttributes);
         highlightAttributes.outlineColor = WorldWind.Color.RED;
         highlightAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 1);
-        highlightAttributes.applyLighting = false;
+        highlightAttributes.applyLighting = false;*/
 
         // Create the mesh.
         var mesh = new WorldWind.TriangleMesh(meshPositions, meshIndices, meshAttributes);
         mesh.textureCoordinates = texCoords;
         mesh.outlineIndices = outlineIndices;
-        mesh.highlightAttributes = highlightAttributes;
+        //mesh.highlightAttributes = highlightAttributes;
 
         // Add the mesh to a layer and the layer to the World Window's layer list.
         var meshLayer = new WorldWind.RenderableLayer();
@@ -104,7 +104,7 @@ requirejs(['../src/WorldWind',
 
         // Create a mesh that displays a custom image.
 
-        var canvas = document.createElement("canvas"),
+     /*   var canvas = document.createElement("canvas"),
             ctx2d = canvas.getContext("2d"),
             size = 64, c = size / 2 - 0.5, innerRadius = 5, outerRadius = 20;
 
@@ -146,7 +146,7 @@ requirejs(['../src/WorldWind',
         mesh.highlightAttributes = highlightAttributes;
 
         // Add the mesh to the layer.
-        meshLayer.addRenderable(mesh);
+        meshLayer.addRenderable(mesh);*/
 
         // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
