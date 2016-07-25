@@ -8,9 +8,9 @@
 
 require(['../../src/WorldWind',
         'http://worldwindserver.net/webworldwind/examples/LayerManager.js',
-        './util/Satellite', './util/ObjectWindow', '../util/ProjectionMenu', '../../src/util/WWMath'],
+        './util/Satellite', './util/ObjectWindow', '../util/ProjectionMenu'],
     function (ww,
-              LayerManager, Satellite, ObjectWindow, ProjectionMenu, WWMath) {
+              LayerManager, Satellite, ObjectWindow, ProjectionMenu) {
         "use strict";
 
         $.get('./SatTracker/groundstations.json', function(groundStations) {
@@ -44,6 +44,8 @@ require(['../../src/WorldWind',
         var latitudePlaceholder = document.getElementById('latitude');
         var longitudePlaceholder = document.getElementById('longitude');
         var altitudePlaceholder = document.getElementById('altitude');
+        var typePlaceholder = document.getElementById('type');
+        var intldesplaceholder = document. getElementById('intldes');
 
         function deg2text(deg, letters) {
             var letter;
@@ -92,14 +94,14 @@ require(['../../src/WorldWind',
             var groundStationsLayer = new WorldWind.RenderableLayer();
 
             // Create a layer to hold the surface shapes.
-            var shapesLayer = new WorldWind.RenderableLayer("Ground Station Range");
+            //var shapesLayer = new WorldWind.RenderableLayer("Ground Station Range");
 
             // Create and set attributes for it. The shapes below except the surface polyline use this same attributes
             // object. Real apps typically create new attributes objects for each shape unless they know the attributes
             // can be shared among shapes.
             var attributes = new WorldWind.ShapeAttributes(null);
-            attributes.outlineColor = WorldWind.Color.TRANSPARENT;
-            attributes.interiorColor = WorldWind.Color.TRANSPARENT;
+            attributes.outlineColor = new WorldWind.Color(0, 255, 255, 0.1);
+                attributes.interiorColor = WorldWind.Color.TRANSPARENT;
 
            // var highlightAttributes = new WorldWind.ShapeAttributes(attributes);
            // highlightAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 1);
@@ -130,12 +132,20 @@ require(['../../src/WorldWind',
             // Add the path to a layer and the layer to the World Window's layer list.
             groundStationsLayer.displayName = "Ground Stations";
             wwd.addLayer(groundStationsLayer);
-            wwd.addLayer(shapesLayer);
+            //wwd.addLayer(shapesLayer);
             groundStationsLayer.enabled = false;
-            shapesLayer.enabled = false;
+            //shapesLayer.enabled = false;
 
 
-                        var satelliteLayer = new WorldWind.RenderableLayer("Satellite");
+                        var leoSatLayer = new WorldWind.RenderableLayer("LEO Satellite");
+                        var meoSatLayer = new WorldWind.RenderableLayer("MEO Satellite");
+                        var heoSatLayer = new WorldWind.RenderableLayer("HEO Satellite");
+                        var leoRocketsLayer = new WorldWind.RenderableLayer("LEO Rocket Bodies");
+                        var meoRocketsLayer = new WorldWind.RenderableLayer("MEO Rocket Bodies");
+                        var heoRocketsLayer = new WorldWind.RenderableLayer("HEO Rocket Bodies");
+                        var leoDebrisLayer = new WorldWind.RenderableLayer("LEO Debris");
+                        var meoDebrisLayer = new WorldWind.RenderableLayer("MEO Debris");
+                        var heoDebrisLayer = new WorldWind.RenderableLayer("HEO Debris");
 
                             //parse json 3 files payload, rockets, debris
                             satData.satDataString = JSON.stringify(satData);
@@ -232,6 +242,9 @@ require(['../../src/WorldWind',
                                     placemarkAttributes.imageScale = 0.25;
                                 }
 
+                                highlightPlacemarkAttributes.imageSource = '';
+                                highlightPlacemarkAttributes.imageScale = 0.0;
+
                                 placemarkAttributes.imageOffset = new WorldWind.Offset(
                                     WorldWind.OFFSET_FRACTION, 0.5,
                                     WorldWind.OFFSET_FRACTION, 0.5);
@@ -246,11 +259,40 @@ require(['../../src/WorldWind',
                                 placemark.attributes = placemarkAttributes;
                                 placemark.highlightAttributes = highlightPlacemarkAttributes;
 
-                                satelliteLayer.addRenderable(placemark);
+
+
+                                if (satData[ind].OBJECT_TYPE ==="PAYLOAD"){
+                                    if ((Math.round(everyCurrentPosition[ind].altitude  / 10) / 100) <= 1200){
+                                        leoSatLayer.addRenderable(placemark);
+                                    } else if ((Math.round(everyCurrentPosition[ind].altitude  / 10) / 100) > 1200 && (Math.round(everyCurrentPosition[ind].altitude  / 10) / 100) <= 35790){
+                                        meoSatLayer.addRenderable(placemark);
+                                    } else if ((Math.round(everyCurrentPosition[ind].altitude  / 10) / 100) > 35790){
+                                        heoSatLayer.addRenderable(placemark);
+                                    }
+                                } else if (satData[ind].OBJECT_TYPE ==="ROCKET BODY"){
+                                    if ((Math.round(everyCurrentPosition[ind].altitude  / 10) / 100) <= 1200){
+                                        leoRocketsLayer.addRenderable(placemark);
+                                    } else if ((Math.round(everyCurrentPosition[ind].altitude  / 10) / 100) > 1200 && (Math.round(everyCurrentPosition[ind].altitude  / 10) / 100) <= 35790){
+                                        meoRocketsLayer.addRenderable(placemark);
+                                    } else if ((Math.round(everyCurrentPosition[ind].altitude  / 10) / 100) > 35790){
+                                        heoRocketsLayer.addRenderable(placemark);
+                                    }
+                                } else if (satData[ind].OBJECT_TYPE ==="DEBRIS") {
+                                    if ((Math.round(everyCurrentPosition[ind].altitude  / 10) / 100) <= 1200){
+                                        leoDebrisLayer.addRenderable(placemark);
+                                    } else if ((Math.round(everyCurrentPosition[ind].altitude  / 10) / 100) > 1200 && (Math.round(everyCurrentPosition[ind].altitude  / 10) / 100) <= 35790){
+                                        meoDebrisLayer.addRenderable(placemark);
+                                    } else if ((Math.round(everyCurrentPosition[ind].altitude  / 10) / 100) > 35790){
+                                        heoDebrisLayer.addRenderable(placemark);
+                                    }
+                                }
+
+
                             }
 
 
                         wwd.redraw();
+
 
                 //custom layers
                 var modelLayer = new WorldWind.RenderableLayer("Model");
@@ -261,9 +303,36 @@ require(['../../src/WorldWind',
                 wwd.addLayer(meshLayer);
                 wwd.addLayer(modelLayer);
                 wwd.addLayer(orbitsLayer);
-                wwd.addLayer(satelliteLayer);
 
+                wwd.addLayer(leoSatLayer);
+                wwd.addLayer(meoSatLayer);
+                wwd.addLayer(heoSatLayer);
+                wwd.addLayer(leoRocketsLayer);
+                wwd.addLayer(meoRocketsLayer);
+                wwd.addLayer(heoRocketsLayer);
+                wwd.addLayer(leoDebrisLayer);
+                wwd.addLayer(leoDebrisLayer);
+                wwd.addLayer(meoDebrisLayer);
+                wwd.addLayer(heoDebrisLayer);
 
+                $('.payloads').click(function()
+                {
+                    if ($(this).text() == "PAYLOADS on")
+                    {
+                        $(this).text("PAYLOADS Off");
+                        leoSatLayer.enabled = false;
+                        meoSatLayer.enabled = false;
+                        heoSatLayer.enabled = false;
+                    }
+                    else
+                    {
+                        $(this).text("PAYLOADS On");
+                        leoSatLayer.enabled = true;
+                        meoSatLayer.enabled = true;
+                        heoSatLayer.enabled = true;
+
+                    }
+                });
 
         // Draw
         wwd.redraw();
@@ -356,6 +425,8 @@ require(['../../src/WorldWind',
                 var index = everyCurrentPosition.indexOf(position);
                 var satPos = everyCurrentPosition[index];
                 satelliteLayer.enabled = false;
+                typePlaceholder.textContent = satData[index].OBJECT_TYPE;
+                intldesplaceholder.textContent = satData[i].INTLDES;
 
 
                 //Move to sat position on click and redefine navigator positioning
@@ -478,8 +549,6 @@ require(['../../src/WorldWind',
                 }, 3000);
 
                 //hide image so collada can be display
-                highlightPlacemarkAttributes.imageSource = '';
-                highlightPlacemarkAttributes.imageScale = 0.0;
 
                 placemarkAttributes.imageSource = '';
                 placemarkAttributes.imageScale = 0.0;
@@ -575,6 +644,8 @@ require(['../../src/WorldWind',
                         var position = pickList.objects[0].position;
                         var index = everyCurrentPosition.indexOf(position);
                         var satPos = everyCurrentPosition[index];
+                        typePlaceholder.textContent = satData[index].OBJECT_TYPE;
+                        intldesplaceholder.textContent = satData[i].INTLDES;
 
                 //highlight image
                         highlightPlacemarkAttributes.imageSource = "../apps/SatTracker/satellite.png";
@@ -598,8 +669,8 @@ require(['../../src/WorldWind',
 
                     //create label on hover
                         var placemarkLabelAttributes = new WorldWind.PlacemarkAttributes(null);
-                        placemarkLabelAttributes.imageSource = "../apps/SatTracker/dot-red.png";
-                        placemarkLabelAttributes.imageScale = 0.50;
+                       // placemarkLabelAttributes.imageSource = "../apps/SatTracker/dot-red.png";
+                        //placemarkLabelAttributes.imageScale = 0.50;
                         placemarkLabelAttributes.imageOffset = new WorldWind.Offset(
                             WorldWind.OFFSET_FRACTION, 0.5,
                             WorldWind.OFFSET_FRACTION, 0.5);

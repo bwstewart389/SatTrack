@@ -20,10 +20,9 @@
             </canvas>
                 <div id="overlay">
                     <header style="color:white">
-                        <h1 style="text-align: left">Satellite Tracker</h1>
-                        <p>Latitude: <span id="latitude"></span> | Longitude: <span id="longitude"></span> | Altitude: <span id="altitude"></span></p>
+                        <h1 style="text-align: right">Satellite Tracker</h1>
                         <div style="color:black">
-                            <button class="user" data-name="payloads">Payloads</button>
+                            <button class="user" data-name="payloads">PAYLOADS On</button>
                             <button class="user" data-name="rockets">Rocket Bodies</button>
                             <button class="user" data-name="debris">Debris</button>
                         </div>
@@ -32,8 +31,16 @@
                             <button class='follow'>Follow On</button>
                             <button class='mesh'>Mesh On</button>
                         </div>
+                        <br>
+                        <p>Latitude: <span id="latitude"></span></p>
+                        <p>Longitude: <span id="longitude"></span></p>
+                        <p>Altitude: <span id="altitude"></span></p>
+                        <p>Sat Type: <span id="type"></span></p>
+                        <p>INTLDES: <span id="intldes"></span></p>
                     </header>
-                    <div class="col-sm-2" style="width: 200px">
+                </div>
+                <div id="overlay2">
+                    <div class="col-sm-2" style="width: 150px">
                         <h4>Projection</h4>
                         <div class="dropdown" id="projectionDropdown">
                         </div>
