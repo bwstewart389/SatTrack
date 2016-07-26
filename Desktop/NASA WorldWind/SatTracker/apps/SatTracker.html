@@ -20,35 +20,50 @@
             </canvas>
                 <div id="overlay">
                     <header style="color:white">
-                        <h1 style="text-align: right">Satellite Tracker</h1>
+                        <h1 style="text-align: left">Satellite Tracker</h1>
                         <div style="color:black">
-                            <button class="user" data-name="payloads">PAYLOADS On</button>
-                            <button class="user" data-name="rockets">Rocket Bodies</button>
-                            <button class="user" data-name="debris">Debris</button>
+                            <button class="allSats">ALL OFF</button>
+                            <button class="payloads">PAYLOADS OFF</button>
+                            <button class="rockets">ROCKETS OFF</button>
+                            <button class="debris">DEBRIS OFF</button>
                         </div>
                         <br>
                         <div style="color:black">
+                            <h4 style="color:white">Orbit Range:</h4>
+                            <button class="leo">LEO ON</button>
+                            <button class="meo">MEO ON</button>
+                            <button class="heo">HEO ON</button>
+                        </div>
+                        <br>
+                        <div style="color:black">
+                            <h4 style="color: white">Tools:</h4>
                             <button class='follow'>Follow On</button>
                             <button class='mesh'>Mesh On</button>
                         </div>
                         <br>
-                        <p>Latitude: <span id="latitude"></span></p>
-                        <p>Longitude: <span id="longitude"></span></p>
-                        <p>Altitude: <span id="altitude"></span></p>
-                        <p>Sat Type: <span id="type"></span></p>
-                        <p>INTLDES: <span id="intldes"></span></p>
+                        <div style="color: black">
+                            <h4 style="color: white">Ground Stations</h4>
+                            <button class='gStations'>GS OFF</button>
+                        </div>
                     </header>
                 </div>
-                <div id="overlay2">
+                <div id="overlay2" style="color: black">
                     <div class="col-sm-2" style="width: 150px">
                         <h4>Projection</h4>
                         <div class="dropdown" id="projectionDropdown">
                         </div>
-                        <h4>Layers</h4>
-                        <div class="list-group" id="layerList">
-                        </div>
                     </div>
                 </div>
+                <div id="infoBox">
+                    <h4 style="color: white">Sat Info:</h4>
+                    <p>LATITUDE: <span id="latitude"></span></p>
+                    <p>LONGITUDE: <span id="longitude"></span></p>
+                    <p>ALTITUDE: <span id="altitude"></span></p>
+                    <p>SAT TYPE: <span id="type"></span></p>
+                    <p>INTLDES: <span id="intldes"></span></p>
+                    <p>NAME: <span id="name"></span></p>
+                </div>
+            <br>
             </div>
 
 </body>
