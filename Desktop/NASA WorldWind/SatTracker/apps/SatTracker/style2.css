@@ -41,3 +41,13 @@ body {
     right: 10px;
     top: 10px;
 }
+#infoBox {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    padding-left: 10px;
+    padding-right: 50px;
+    padding-bottom: 10px;
+    padding-bottom: 10px;
+}
